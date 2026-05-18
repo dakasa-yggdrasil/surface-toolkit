@@ -1,4 +1,4 @@
-# @yggdrasil/surface-toolkit
+# @dakasa-yggdrasil/surface-toolkit
 
 Shared design system, hooks, and `IntegrationAdminShell` consumed by Yggdrasil integration surfaces.
 
@@ -7,7 +7,7 @@ See `docs/superpowers/specs/2026-05-17-integration-surfaces-design.md` in `yggdr
 ## Install
 
 ```bash
-npm install @yggdrasil/surface-toolkit
+npm install @dakasa-yggdrasil/surface-toolkit
 ```
 
 ## License
