@@ -7,3 +7,5 @@ export { PageHeader } from "./PageHeader";
 export type { PageHeaderProps, BreadcrumbItem } from "./PageHeader";
 export { Tabs, TabPanel } from "./Tabs";
 export type { TabDef, TabsProps, TabPanelProps } from "./Tabs";
+export { DataTable } from "./DataTable";
+export type { ColumnDef, DataTableProps } from "./DataTable";
