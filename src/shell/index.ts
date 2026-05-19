@@ -1,2 +1,8 @@
 export { IntegrationAdminShell } from "./IntegrationAdminShell";
 export type { IntegrationAdminShellProps, TabDefinition } from "./IntegrationAdminShell";
+export { SurfaceThemeProvider, surfaceTheme } from "./SurfaceThemeProvider";
+export type { SurfaceThemeProviderProps } from "./SurfaceThemeProvider";
+export { InstancePicker } from "./InstancePicker";
+export type { InstancePickerProps } from "./InstancePicker";
+export { TeamContextShell } from "./TeamContextShell";
+export type { TeamContextShellProps, TeamTabDefinition, TeamTabProps } from "./TeamContextShell";

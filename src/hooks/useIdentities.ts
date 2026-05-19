@@ -13,6 +13,14 @@ export interface UseIdentitiesOpts {
   status?: "active" | "soft_deleted" | "all";
 }
 
+interface ApiResponse {
+  identities?: IdentityT[];
+  total?: number;
+}
+
+// /collaborator-external-identities returns {identities: [...]}; we reshape
+// to {items, total} for ergonomic match with the other "list" hooks. Empty
+// or missing identities is fine (returns items: []).
 export function useIdentities(opts: UseIdentitiesOpts) {
   const api = useYggdrasilAPI();
   const params = new URLSearchParams();
@@ -22,7 +30,11 @@ export function useIdentities(opts: UseIdentitiesOpts) {
   const qs = params.toString() ? `?${params.toString()}` : "";
   return useQuery({
     queryKey: ["identities", opts],
-    queryFn: () => api.get<IdentitiesResult>(`/collaborator-external-identities${qs}`),
+    queryFn: async (): Promise<IdentitiesResult> => {
+      const resp = await api.get<ApiResponse>(`/collaborator-external-identities${qs}`);
+      const items = resp.identities ?? [];
+      return { items, total: resp.total ?? items.length };
+    },
     staleTime: 15_000
   });
 }
