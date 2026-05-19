@@ -12,3 +12,4 @@ export { WebhookLogTab } from "./WebhookLogTab";
 export type { WebhookLogTabProps } from "./WebhookLogTab";
 export { ResourcesTab } from "./ResourcesTab";
 export type { ResourcesTabProps, ResourceItem } from "./ResourcesTab";
+export { TeamOverviewTab } from "./TeamOverviewTab";
