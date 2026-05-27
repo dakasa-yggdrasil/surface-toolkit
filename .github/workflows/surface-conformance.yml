@@ -1,0 +1,27 @@
+name: Surface Conformance
+
+# Static lint against SURFACE_CONTRACT.md section 3 invariants. Calls the
+# reusable workflow in dakasa-yggdrasil/surface-conformance so the linter
+# installation logic stays in one place.
+#
+# surface-toolkit is a published React component library, not a surface
+# itself, but it ships the canonical SurfaceShell/TeamContextShell/
+# useSurfaceQuery/useInstance hooks every surface uses to satisfy
+# section 3 invariants 2-5. Running the same conformance lint guards
+# against regressions where toolkit primitives accidentally violate the
+# invariants they were built to protect.
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  conformance:
+    uses: dakasa-yggdrasil/surface-conformance/.github/workflows/surface-conformance-reusable.yml@main
+    with:
+      surface-path: "."
