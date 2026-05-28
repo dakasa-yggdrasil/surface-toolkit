@@ -1,0 +1,30 @@
+READ FIRST: SURFACE_CONTRACT.md in repo root. Surface is modeled as a slime: shape-free (UI/API/MCP/bot/dashboard/wizard/anything), invariants-bound.
+
+ABSOLUTE rule #0 (Yggdrasil scope vs Backend scope):
+- Yggdrasil (including surfaces) = IDP for the operating COMPANY's internal team (collaborators, devops, platform engineers, ops).
+- Backend services = end-user-facing business operations (customers, consumers).
+- A surface views/dispatches company-owned resources for the internal team — never an end-user product frontend.
+- Example: "Stripe webhook health dashboard for platform team" = Yggdrasil surface. "Pay your bill" page for customers = NOT Yggdrasil (operator product frontend).
+- Heuristic: audience is COMPANY internal team → Yggdrasil; audience is END-USERS → not Yggdrasil.
+
+Invariants every surface honors:
+- Stateless w.r.t. business state (strongly discouraged with ADR exception path).
+- Auth via Yggdrasil session (delegated; never reimplement).
+- Backend-agnostic: calls Yggdrasil core API; direct provider bypass strongly discouraged.
+- Multi-tenant aware: integration_instance scoping respected.
+- Lego principle: no hardcoded cloud / CDN / auth / analytics / i18n provider.
+- No business decisions.
+
+Hard line (no exceptions):
+- NEVER log credentials, secrets, tokens.
+- NEVER reimplement user auth from scratch.
+- NEVER hardcode a specific cloud / CDN / hosting / auth provider.
+- NEVER make business decisions.
+
+Freedoms (slime adapts):
+- Any framework, any shape, any real-time mechanism.
+- UX-edge persistence (localStorage, IndexedDB) for non-business state.
+- Custom data shaping, aggregations, cross-integration composition.
+- New surface "shapes" don't need permission — invariants do.
+
+This repository is the official Yggdrasil surface template. Keep it generic, core-first, production-friendly. Preserve readiness and shutdown defaults.

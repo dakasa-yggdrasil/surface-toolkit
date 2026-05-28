@@ -1,0 +1,45 @@
+---
+description: Yggdrasil surface repository rules
+alwaysApply: true
+---
+
+## READ FIRST: `SURFACE_CONTRACT.md`
+
+Surface is a **slime**: shape-free (UI / API / MCP / bot / dashboard / wizard / anything), invariants-bound. The canonical contract is `SURFACE_CONTRACT.md` in the repo root.
+
+## ABSOLUTE rule #0 — Yggdrasil scope vs Backend scope
+
+Yggdrasil (and surfaces) = IDP for the operating company's internal team. Backend = end-user-facing business. A surface views/dispatches operations on COMPANY-OWNED resources for the INTERNAL team. It is never an end-user product frontend.
+
+Example: "Stripe webhook health dashboard for platform team" → Yggdrasil surface. "Pay your bill page for customers" → operator product frontend (NOT Yggdrasil). Heuristic: if audience is the COMPANY's internal team → Yggdrasil surface; if audience is END-USERS → not Yggdrasil.
+
+## Invariants
+
+- **Stateless w.r.t. business** — business state strongly discouraged; if absolutely needed, ADR + sign-off (§5.1).
+- **Auth via Yggdrasil session** — delegated; public surfaces use read-only Yggdrasil tokens.
+- **Backend-agnostic** — calls Yggdrasil core `/api/v1/*`. Direct provider API calls strongly discouraged; ADR + sign-off (§5.2) if absolutely needed.
+- **Multi-tenant aware** — `integration_instance` scoping respected.
+- **Lego principle** — no hardcoded cloud / CDN / auth / analytics / i18n provider.
+- **No business decisions** — surface presents and dispatches; doesn't decide business rules.
+
+## Hard line (no exceptions)
+
+- NEVER log credentials, secrets, signing keys, tokens.
+- NEVER reimplement user auth from scratch.
+- NEVER hardcode a specific cloud / CDN / hosting / auth provider.
+- NEVER make business decisions.
+
+## Freedoms (slime adapts)
+
+- Any framework (React, Vue, Svelte, server-rendered, anything)
+- Any shape (UI, API-only, MCP, bot, hybrid)
+- Any real-time mechanism (SSE, WebSocket, polling)
+- UX-edge persistence (localStorage, IndexedDB) for non-business state
+- Custom data shaping, aggregations, cross-integration views
+- New surface "shapes" don't need permission — invariants do
+
+## Working in this scaffold
+
+- Keep defaults generic, portable, production-friendly.
+- Preserve readiness, timeouts, graceful shutdown.
+- Don't bake product-specific business logic into the template.
