@@ -7,6 +7,8 @@ export { useCurrentCollaborator } from "./useCurrentCollaborator";
 export type { CollaboratorT, MembershipT, CurrentCollaboratorResult } from "./useCurrentCollaborator";
 export { useTeam } from "./useTeam";
 export type { TeamT } from "./useTeam";
+export { useTeamExternalId } from "./useTeamExternalId";
+export type { TeamExternalIdResult, ProvisioningEntryT } from "./useTeamExternalId";
 export { useDefaultInstance } from "./useDefaultInstance";
 export { useDriftStatus } from "./useDriftStatus";
 export type { DriftStatusT } from "./useDriftStatus";
