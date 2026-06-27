@@ -229,12 +229,15 @@ override `VITE_CONSOLE_URL`, degrada pra nota muda); baixar holerite → `pdfUrl
 a surface não muta, só **encaminha pra ferramenta adequada**.
 **Adapter (caller-scoped):** queries `my-employment/my-vacations/my-paystubs/my-contract/my-esocial` +
 `team-vacations`, resolvendo o vínculo via `GetActiveEmploymentByCollaborator(collaborator_id)`; sócio
-sem vínculo CLT → empty honesto ("sem vínculo CLT"). **🔴 CAVEAT DE SEGURANÇA:** o dispatcher de
-surface-query NÃO recebe a identidade autenticada (o core valida sessão mas não encaminha o caller
-verificado) → `collaborator_id` é do cliente e **SPOOFÁVEL** (insider poderia ler RH alheio). Hoje a
-surface passa SÓ `scope.collaborator.id` (o próprio) e nunca um id de URL/input. **Fix correto (follow-up,
-dono = yggdrasil-core/SDK):** injetar caller verificado server-side no surface-query e escopar por ele
-(ponto único a trocar = `resolveCaller()`). NÃO expor o self-view em prod antes desse fix.
+sem vínculo CLT → empty honesto ("sem vínculo CLT"). **✅ SEGURANÇA (caller-injection — RESOLVIDO 2026-06-27):**
+o `collaborator_id` spoofável foi fechado. O core já tinha a identidade verificada no contexto (claims
+`collaborator_id` da sessão) — agora o handler de surface-query **carimba** `input[verified_caller_id]`
+das claims (nunca do cliente; body decoder usa `DisallowUnknownFields` → cliente não injeta a chave) e o
+adapter `resolveCaller()` usa o caller verificado, **ignora** o id do cliente e **NEGA** quando ausente.
+Contrato additivo no SDK (`surface.InputVerifiedCallerID`/`VerifiedCallerID()`, **v0.9.0**) → as outras 9
+surfaces não quebram. Commits: sdk-go `e6a0154`(tag v0.9.0) · core `e453482` · adapter `4d9dfd5`; CI verde
+nos 3; verificado adversarialmente (3/3). **⚠️ DEPLOY ORDERING:** rolar **core ANTES** do adapter (o adapter
+passa a negar reads sem caller). Self-view liberada pra prod.
 
 ## Escopo por surface
 
