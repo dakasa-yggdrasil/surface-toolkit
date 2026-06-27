@@ -6,3 +6,5 @@ export { InstancePicker } from "./InstancePicker";
 export type { InstancePickerProps } from "./InstancePicker";
 export { TeamContextShell } from "./TeamContextShell";
 export type { TeamContextShellProps, TeamTabDefinition, TeamTabProps } from "./TeamContextShell";
+export { TierTwoShell } from "./TierTwoShell";
+export type { TierTwoShellProps } from "./TierTwoShell";

@@ -25,3 +25,8 @@ export { Pill } from "./Pill";
 export type { PillProps, PillTone } from "./Pill";
 export { KpiTile } from "./KpiTile";
 export type { KpiTileProps, KpiDelta, KpiDeltaDir } from "./KpiTile";
+export { CapabilityGate, useCapability, satisfies } from "./CapabilityGate";
+export type { CapabilityGateProps, CapabilityNeed } from "./CapabilityGate";
+
+// Inline-SVG, dependency-free chart primitives.
+export * from "./charts";

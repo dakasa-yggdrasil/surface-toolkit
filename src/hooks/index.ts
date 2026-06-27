@@ -9,6 +9,12 @@ export { useTeam } from "./useTeam";
 export type { TeamT } from "./useTeam";
 export { useTeamExternalId } from "./useTeamExternalId";
 export type { TeamExternalIdResult, ProvisioningEntryT } from "./useTeamExternalId";
+export { useCollaboratorScope, ADMIN_PERMS } from "./useCollaboratorScope";
+export type {
+  CollaboratorScope,
+  CollaboratorTier,
+  ScopedTeam
+} from "./useCollaboratorScope";
 export { useDefaultInstance } from "./useDefaultInstance";
 export { useDriftStatus } from "./useDriftStatus";
 export type { DriftStatusT } from "./useDriftStatus";
