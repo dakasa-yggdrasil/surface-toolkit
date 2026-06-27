@@ -1,6 +1,6 @@
 {
   "name": "@dakasa-yggdrasil/surface-toolkit",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "private": false,
   "type": "module",
   "description": "Shared design system, hooks, and shells for Yggdrasil integration surfaces",
