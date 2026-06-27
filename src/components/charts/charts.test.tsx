@@ -136,6 +136,43 @@ describe("Timeline", () => {
     );
     expect(container.querySelectorAll("line[data-role='today']").length).toBe(0);
   });
+
+  it("truncates a long row label to the gutter and keeps the full text in a title", () => {
+    const fullLabel = "@Giomaster's untitled project — a very long roadmap lane name";
+    const { container } = render(
+      <Timeline
+        weeks={12}
+        rows={[{ label: fullLabel, bars: [{ startWeek: 0, endWeek: 3 }] }]}
+      />
+    );
+    const labelText = container.querySelector("text[data-role='row-label']") as SVGTextElement;
+    expect(labelText).toBeTruthy();
+    // The DRAWN glyphs are the direct text node(s) — NOT the nested <title>.
+    const rendered = Array.from(labelText.childNodes)
+      .filter((n) => n.nodeType === 3 /* text node */)
+      .map((n) => n.textContent ?? "")
+      .join("");
+    // The drawn label is shorter than the full label and ends with an ellipsis.
+    expect(rendered.length).toBeLessThan(fullLabel.length);
+    expect(rendered.endsWith("…")).toBe(true);
+    // The truncation cap is small (gutter-bound); rendered length never exceeds it.
+    expect(rendered.length).toBeLessThanOrEqual(13);
+    // Full label is preserved for hover via a <title>.
+    const title = labelText.querySelector("title");
+    expect(title?.textContent).toBe(fullLabel);
+  });
+
+  it("leaves a short row label untruncated (no ellipsis) and still carries a title", () => {
+    const { container } = render(
+      <Timeline
+        weeks={12}
+        rows={[{ label: "Build", bars: [{ startWeek: 0, endWeek: 3 }] }]}
+      />
+    );
+    const labelText = container.querySelector("text[data-role='row-label']") as SVGTextElement;
+    expect(labelText.textContent?.includes("…")).toBe(false);
+    expect(labelText.querySelector("title")?.textContent).toBe("Build");
+  });
 });
 
 describe("Bars", () => {

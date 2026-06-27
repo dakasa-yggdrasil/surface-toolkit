@@ -31,6 +31,24 @@ const VB_W = 240;
 const LABEL_W = 64; // viewBox units reserved for the left label gutter
 const AXIS_H = 14; // top weeks axis band
 const BAR_INSET = 4; // vertical inset of the bar within its row
+const LABEL_FS = 7; // row-label font size (viewBox units)
+const LABEL_PAD = 6; // gap between the label and the plot's left edge
+// Nominal advance width of one label glyph in viewBox units. SVG <text> can't
+// auto-ellipsis, so we truncate the STRING to whatever fits the gutter. Sized
+// a touch generously (~0.62em) so we never bleed past LABEL_W into the bars.
+const LABEL_CHAR_W = LABEL_FS * 0.62;
+// How many chars (incl. the trailing ellipsis) fit in the usable gutter.
+const MAX_LABEL_CHARS = Math.max(1, Math.floor((LABEL_W - LABEL_PAD) / LABEL_CHAR_W));
+
+/**
+ * Fit a row label into the left gutter: if it's wider than {@link MAX_LABEL_CHARS},
+ * hard-truncate the string and append an ellipsis so it never overlaps the bars
+ * (the full text is preserved separately in a <title> for hover).
+ */
+function fitLabel(label: string): string {
+  if (label.length <= MAX_LABEL_CHARS) return label;
+  return label.slice(0, Math.max(0, MAX_LABEL_CHARS - 1)) + "…";
+}
 
 /**
  * A horizontal roadmap: a weeks axis, one horizontal bar per task span,
@@ -89,15 +107,21 @@ export function Timeline({ rows, weeks, todayWeek, rowHeight = 28 }: TimelinePro
         const barH = rowHeight - BAR_INSET * 2;
         return (
           <g key={`row-${ri}`}>
+            {/* Right-aligned in the gutter so it sits cleanly to the left of
+                the plot; long labels are string-truncated (SVG can't ellipsis)
+                and carry the full text in a <title> for hover. */}
             <text
-              x={4}
+              data-role="row-label"
+              x={LABEL_W - LABEL_PAD}
               y={rowTop + rowHeight / 2}
-              fontSize={7}
+              fontSize={LABEL_FS}
               fill={color.body}
               fontFamily="var(--font-body)"
+              textAnchor="end"
               dominantBaseline="middle"
             >
-              {row.label}
+              <title>{row.label}</title>
+              {fitLabel(row.label)}
             </text>
             {row.bars.map((bar, bi) => {
               const x = xForWeek(bar.startWeek);
