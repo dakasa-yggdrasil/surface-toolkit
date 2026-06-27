@@ -27,6 +27,8 @@ export { KpiTile } from "./KpiTile";
 export type { KpiTileProps, KpiDelta, KpiDeltaDir } from "./KpiTile";
 export { CapabilityGate, useCapability, satisfies } from "./CapabilityGate";
 export type { CapabilityGateProps, CapabilityNeed } from "./CapabilityGate";
+export { Skeleton, SKELETON_ANIMATION_NAME } from "./Skeleton";
+export type { SkeletonProps } from "./Skeleton";
 
 // Inline-SVG, dependency-free chart primitives.
 export * from "./charts";
