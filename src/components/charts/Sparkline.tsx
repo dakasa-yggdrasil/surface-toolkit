@@ -39,24 +39,34 @@ export function Sparkline({
   strokeWidth = 2
 }: SparklineProps) {
   const stroke = TONE_STROKE[tone];
+  // The svg is stretched non-uniformly (preserveAspectRatio="none") to fill the
+  // container width at a short height. A polyline survives that fine, but ANY
+  // shape with intrinsic aspect — a <circle> — would be squashed into an ugly
+  // ellipse. So the "latest point" marker is NOT drawn in the svg; it's a CSS
+  // dot overlaid at the point's relative position, which stays perfectly round
+  // regardless of the stretch. (See the distortion guard in charts.test.tsx.)
   const svgStyle: CSSProperties = {
     width: "100%",
-    height: `${height}px`,
+    height: "100%",
     display: "block",
     overflow: "visible"
   };
 
   const points = toPoints(data);
+  const last = points.length > 0 ? points[points.length - 1] : null;
 
   return (
-    <svg
-      viewBox={`0 0 ${VB_W} ${VB_H}`}
-      preserveAspectRatio="none"
-      style={svgStyle}
-      role="img"
+    <div
+      data-role="spark"
+      style={{ position: "relative", width: "100%", height: `${height}px`, overflow: "visible" }}
     >
-      {points.length > 0 ? (
-        <>
+      <svg
+        viewBox={`0 0 ${VB_W} ${VB_H}`}
+        preserveAspectRatio="none"
+        style={svgStyle}
+        role="img"
+      >
+        {points.length > 0 ? (
           <polyline
             points={points.map((p) => `${p.x},${p.y}`).join(" ")}
             fill="none"
@@ -66,16 +76,26 @@ export function Sparkline({
             strokeLinejoin="round"
             vectorEffect="non-scaling-stroke"
           />
-          <circle
-            cx={points[points.length - 1].x}
-            cy={points[points.length - 1].y}
-            r={2.5}
-            fill={stroke}
-            vectorEffect="non-scaling-stroke"
-          />
-        </>
+        ) : null}
+      </svg>
+      {last ? (
+        <span
+          data-role="spark-dot"
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            left: `${(last.x / VB_W) * 100}%`,
+            top: `${(last.y / VB_H) * 100}%`,
+            width: 5,
+            height: 5,
+            borderRadius: "50%",
+            background: stroke,
+            transform: "translate(-50%, -50%)",
+            pointerEvents: "none"
+          }}
+        />
       ) : null}
-    </svg>
+    </div>
   );
 }
 

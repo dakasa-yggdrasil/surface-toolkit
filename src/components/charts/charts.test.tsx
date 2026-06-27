@@ -27,8 +27,10 @@ describe("Sparkline", () => {
     expect(svg.style.width).toBe("100%");
     // one trend polyline
     expect(container.querySelectorAll("polyline").length).toBe(1);
-    // one end dot
-    expect(container.querySelectorAll("circle").length).toBe(1);
+    // the "latest point" marker is a CSS dot, NOT an svg <circle> — a circle in
+    // a preserveAspectRatio="none" svg stretches into an ugly ellipse.
+    expect(container.querySelector("[data-role='spark-dot']")).toBeTruthy();
+    expect(container.querySelectorAll("circle, ellipse").length).toBe(0);
   });
 
   it("renders nothing drawable for empty data but still emits an svg", () => {
@@ -39,10 +41,30 @@ describe("Sparkline", () => {
     expect(container.querySelectorAll("circle").length).toBe(0);
   });
 
-  it("honors the height prop", () => {
+  it("honors the height prop (on the wrapper; the svg fills it)", () => {
     const { container } = render(<Sparkline data={[1, 2, 3]} height={64} />);
-    const svg = getSvg(container);
-    expect(svg.style.height).toBe("64px");
+    const wrap = container.querySelector("[data-role='spark']") as HTMLElement;
+    expect(wrap.style.height).toBe("64px");
+  });
+});
+
+describe("distortion guard", () => {
+  // The class of bug behind the "ugly ellipse at the end of the chart": a shape
+  // with intrinsic aspect ratio (circle/ellipse) inside a non-uniformly scaled
+  // svg (preserveAspectRatio="none") gets squashed. This guard fails loudly if
+  // any such shape is ever (re)introduced into a stretched chart.
+  it("non-uniform charts contain no <circle>/<ellipse> (they would distort)", () => {
+    const cases = [
+      <Sparkline key="s" data={[1, 2, 3, 4]} />,
+      <AreaChart key="a" series={{ opened: [1, 2, 3], merged: [1, 1, 2] }} />
+    ];
+    for (const el of cases) {
+      const { container } = render(el);
+      const svg = container.querySelector("svg") as SVGSVGElement;
+      if (svg.getAttribute("preserveAspectRatio") === "none") {
+        expect(container.querySelectorAll("svg circle, svg ellipse").length).toBe(0);
+      }
+    }
   });
 });
 
