@@ -64,3 +64,38 @@
   --fs-xl: 21px;
   --fs-2xl: 27px;
 }
+
+/*
+ * Dark variant — a warm, candle-lit dark (intentionally NOT cold gray).
+ *
+ * Applied when an ancestor `<html>` (or the `.atelier` element itself) carries
+ * `data-theme="dark"`. SurfaceThemeProvider sets that attribute on
+ * `document.documentElement`. Only the color roles flip here — spacing, radius,
+ * fonts, and type sizes stay shared from the light `.atelier` block above.
+ */
+[data-theme="dark"] .atelier,
+.atelier[data-theme="dark"] {
+  --ink: #f4ecdd;
+  --body: #ddd0bb;
+  --mut: #9d8a70;
+
+  --cream: #171310;
+  --sand: #1f1a15;
+  --sand2: #2a2017;
+
+  --honey: #e0974a;
+  --honey2: #f0bb66;
+  --bronze: #c89653;
+  --bronze2: #b6863d;
+
+  --line: #362b20;
+
+  --ok: #88ad58;
+  --ok2: #a3c473;
+  --warn: #d49a2f;
+  --warn2: #ecb44e;
+  --crit: #d2632f;
+  --crit2: #dd7a44;
+
+  --sh-soft: 0 10px 30px -18px rgba(0, 0, 0, .55);
+}
