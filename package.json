@@ -1,6 +1,6 @@
 {
   "name": "@dakasa-yggdrasil/surface-toolkit",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": false,
   "type": "module",
   "description": "Shared design system, hooks, and shells for Yggdrasil integration surfaces",
@@ -15,7 +15,11 @@
     },
     "./styles": "./dist/styles.css"
   },
-  "files": ["dist", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "vite build && tsc --emitDeclarationOnly --declaration --outDir dist",
     "test": "vitest run",
@@ -51,7 +55,12 @@
     "vite-plugin-dts": "^4.0.0",
     "vitest": "^2.0.0"
   },
-  "publishConfig": { "access": "public" },
-  "repository": { "type": "git", "url": "git+https://github.com/dakasa-yggdrasil/surface-toolkit.git" },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dakasa-yggdrasil/surface-toolkit.git"
+  },
   "license": "Apache-2.0"
 }
