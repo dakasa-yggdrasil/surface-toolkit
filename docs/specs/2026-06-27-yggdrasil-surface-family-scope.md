@@ -54,6 +54,147 @@ Primitivos que toda surface compõe (extraídos da surface do GitHub + deste lev
   **drift-render** (desejado-vs-vivo), **cluster-validation-gate** (E2E-green + no-CI-broken),
   **FinOps-signal** (usage-vs-requests / savings).
 
+## Reflexão humana — o que é precioso UNIFICAR (por integration)
+
+> **Prática (registrar ao construir cada surface):** antes de cravar os recursos, perguntar
+> *quem consome essa surface, e que informação é mais preciosa ter **unificada** — a unificação
+> que o tool nativo não dá?* A surface não é um espelho do console nativo; é o **roll-up** que
+> economiza os saltos manuais. Cada surface ganha sua reflexão aqui ao ser construída.
+
+### K8s — reflexão (construindo 1º)
+**Quem consome:** devops/SRE/plataforma, muitas vezes de plantão, abrindo a tela pra responder
+UMA pergunta: *"está tudo de pé, e o que travou?"*. Hoje isso é `kubectl get deploy -A` + apertar
+os olhos, saltando namespace por namespace, em dois clusters fisicamente separados (Domain/CP).
+
+**O que é precioso unificar (o que o `kubectl` não dá de graça):**
+1. **Ready/desired de TODO workload, cross-namespace e cross-cluster, num lugar** — o roll-up que
+   substitui o "olhar 38 deployments um a um".
+2. **O que travou + POR QUÊ, na hora** — pods em CrashLoop/ImagePull já correlacionados ao deployment
+   e ao motivo (o adapter já detecta o estado terminal em `pod_health`); triagem, não caça.
+3. **Rollouts em voo: convergindo ou empacado?** — observedGeneration/ready/updated, com o sinal
+   fail-loud de `image_overrides_applied=0` (repoint que não casou nada).
+4. **Estado de wake/sleep + capacidade**, pra ninguém deployar contra um cluster deep-slept.
+5. **Gaps de guardrail ANTES do movimento arriscado** — PDB faltando, PVC órfão — surfaçados como
+   um relatório permanente, não descobertos no incidente.
+
+**Páginas de detalhe (do que isso decorre):** Workloads (tabela filtrável: ready/desired, SHA da
+imagem, restarts, idade) · Rollouts (em-voo + recentes, convergência) · Pods/Triagem (estados
+terminais com o porquê) · Guardrails (relatório PDB/PVC). Home = o pulso técnico ("38 workloads ·
+36/38 ready · 2 em rollout · 1 precisa de você").
+
+### AWS — reflexão (construindo 2º)
+**Quem consome:** plataforma/devops/FinOps. A tela responde *"o que a conta está fazendo, quanto
+custa, e está segura?"*. Hoje é saltar o console por serviço (EKS, RDS, Cost Explorer em us-east-1,
+Security Hub, IAM) e por região (ECR us-east-1 vs workloads sa-east-1) — silos.
+
+**O que é precioso unificar (o que o console siloado não dá):**
+1. **Postura de wake/sleep + custo num pulso só** — a alavanca de hibernação da DaKasa: *o cluster
+   está acordado? quanto está custando AGORA?* (sparkline de gasto com os eventos de sleep/wake
+   anotados — ver o dinheiro que a hibernação economiza).
+2. **Drift do baseline de segurança como pass/fail permanente** — não enterrado no Security Hub:
+   GuardDuty/Inspector ligados? bucket virou público? chave IAM &gt;90d? KMS sem rotação?
+3. **Liveness do data-tier** — os 3 RDS (shared/payments/temporal) + cache, up/down, num lugar.
+4. **Recomendações de custo com $ acionável** — snapshots órfãos, NAT idle, EIP solta — com o
+   valor e o apply seguro.
+5. **Acesso/SSO pendente** (Identity Center) — quem espera permission-set.
+
+**Páginas de detalhe:** Cluster & Compute (nodegroups, wake-state) · Data-tier (RDS/cache) · Custo
+(recomendações + savings) · Segurança & Acesso (baseline + SSO) · Registry/DNS/Secrets. Home = o
+pulso ("eks-prod-wake acordado · data-tier 3/3 · gasto MTD ~$X · 2 drifts de segurança · 4 economias").
+
+### Slack — reflexão (construindo 3º)
+**Quem consome:** plataforma/ops (+ RH-leve pra membership). Pergunta: *"o workspace está
+saudável, e a trilha de nudge — que as OUTRAS 8 surfaces dependem — está viva?"*. Hoje o admin do
+Slack é por-tela (membros, canais, SCIM), sem uma visão operacional única.
+
+**O que é precioso unificar:**
+1. **Saúde da trilha de nudge** — o backbone que TODA a família usa: entregas ok vs falhas
+   (`channel_not_found` etc.). Se isso degrada, as 9 surfaces ficam mudas. É o sinal #1.
+2. **Gaps de MFA** — quem não habilitou 2FA (segurança do time), exige admin xoxp- token.
+3. **Drift de canais/grupos vs times** — canais/@grupos cujo time dono foi deletado/renomeado
+   (órfãos), ou @grupo divergindo dos membros do time.
+4. **Stragglers de offboard** — desligado no Yggdrasil mas ainda ativo no Slack (+ guard sócios:
+   nunca auto-desativar um sócio).
+
+**Páginas:** Membros & Lifecycle (roster + MFA) · Canais & Grupos (drift) · Trilha de Nudge
+(entregas) · Acesso & SSO (SCIM/SAML). Home = "Workspace · 14 membros · 1 sem MFA · 3 canais
+órfãos · nudge-rail ok". (Canvas fora do v1 — sem capability no adapter.)
+
+### Google Workspace — reflexão (construindo 4º)
+**Quem consome:** plataforma + RH-ops. Pergunta: *"a identidade/acesso de todos está correta, e o
+onboard/offboard aterrissou?"*. Hoje é o admin.google.com por-tela (usuários, grupos, OUs, SSO).
+
+**O que é precioso unificar:**
+1. **Drift de identidade** — diretório ≠ Yggdrasil (suspenso aqui mas ativo no core, ou vice-versa).
+   É o sinal #1 — a confiança de que a tela diz a verdade.
+2. **Lifecycle aterrissou?** — onboard produziu conta+mailbox+grupo; offboard suspendeu + matou
+   sessões. Ver os runs dos reactors e seu resultado.
+3. **Postura de SSO** — o perfil SAML inbound apontando o Google pro IdP Yggdrasil; quais OUs/grupos
+   estão atrás dele (quem pode estar fora, bypassando MFA do IdP).
+4. **Saúde do re-sync cron** — última execução + quantos drifts achou.
+
+**Seam (firme):** GW = **identidade/acesso/SSO/sessões**; employment-clt = **contrato/folha**. Sem
+valores de payroll aqui. **Guard sócios** (nunca auto-suspender um sócio).
+
+**Páginas:** People & Directory (roster + OU + drift) · Acesso & Grupos · SSO & Sign-in · Lifecycle
+& Re-sync. Home = "Tenant · 14 pessoas · 1 drift · SSO ok · re-sync há 8min". (observe-grupos/OUs e
+MFA-enforcement = adapter gaps → needs-work honesto.)
+
+### Grafana — reflexão (construindo 5º)
+**Quem consome:** SRE/dev/plataforma. Pergunta: *"a observabilidade está saudável e governada?"*.
+**Precioso unificar:** saúde dos datasources (o que o Grafana lê está no ar?); dashboards/pastas +
+**dono** (pasta sem time = gap de governança); **cobertura de roteamento de alerta** (alerta sem
+destino cai calado); acesso (users/teams/SSO). **NUNCA valores de painel** — só config; a viz real é
+`↗` no Grafana nativo (senão um contribuidor "ajuda" embutindo um painel de receita). **Gaps honestos
+(needs-work):** alert-state (emptyRows hoje), datasource-health-probe, drift managed-vs-hand-edited.
+**Páginas:** Painéis & Pastas · Conexões · Alertas & Roteamento (deep-link no v1) · Acesso. Home =
+"Grafana · N dashboards · M datasources · alertas via ↗".
+
+### Prometheus — reflexão (construindo 6º)
+**Quem consome:** SRE/plataforma. Pergunta: *"a telemetria está saudável, e o que ela manda agir?"*.
+**Precioso unificar:** saúde de scrape-target (endpoints /metrics no ar?); atividade de
+query/threshold (o que foi perguntado + violações); os sinais FinOps/Heimdall que o Prometheus já
+alimenta. **Gap honesto:** `/api/v1/{targets,rules,alerts}` NÃO existe no adapter → alert/rule/firing
+e a lista-de-targets-nativa são needs-work/deep-link. Toda métrica é **telemetria SLO pro operador**,
+não billing do cliente. **Páginas:** Query & Threshold · Scrape Health · Alert & Rule (deep-link) ·
+FinOps/Heimdall. Home = "Prometheus · K thresholds verdes · scrape ok · alertas via ↗".
+
+### Stripe — reflexão (construindo 7º)
+**Quem consome:** plataforma/finance-ops. Pergunta: *"a esteira de pagamento está saudável, e tem
+algum item de dinheiro com prazo?"*. É o exemplo canônico de surface VÁLIDA do contrato.
+**Precioso unificar:** integridade da ingestão de webhook (falhas de assinatura, RTA emit-erros =
+eventos que não viraram workflow); saldo + payouts (dinheiro caindo na conta da EMPRESA); **disputas
+com prazo** (o item mais time-sensitive); reconciliação (recebidos = RTA-emitidos). **NUNCA billing
+por-cliente** — dado de cliente só como ref opaca (event_id/charge_id). Money-movement (refund/payout)
+só admin, idempotente, enquadrado como remediação-de-ops (gated "Em breve" no v1 read-first).
+**Gaps honestos:** disputas/payouts reconstruídos do log RTA (needs-work); sinais de /metrics
+(signature-failures) precisam de passthrough do core (needs-work). v1 real = webhook-endpoints + saldo.
+**Páginas:** Webhook Health · Saldo & Payouts · Disputas · Reconciliação.
+
+### EFI (Pix) — reflexão (construindo 8º — risco #0 MÁXIMO)
+**Quem consome:** plataforma/finance-ops. Pergunta: *"o trilho Pix está saudável e o livro bate?"*.
+É o exemplo PROIBIDO do contrato ("Pague sua conta") → vista por construção como ops-interno.
+**Precioso unificar:** saúde do webhook mTLS (o hardened no Sec#2 — última entrega, handshake);
+**drift de reconciliação** (EFI charges vs `identities.webhook_event_efi` — o killer, precisa de join
+cross-system via core, needs-work); auditoria de payouts/prólabore (display+confirm, decisão fica no
+cash-loop). **Surface NUNCA decide quem/quanto pagar** — valor+destino vêm do workflow; surface =
+confirm+observe. **Badge de ambiente** (homolog vs prod) + recusar money-movement em homolog. **Seam
+prólabore:** CLT decide competência/valor, EFI executa Pix. Mesmo **template payment-rail** que Stripe.
+**Páginas:** Webhook & mTLS · Charges & Reconciliação · Payouts & Prólabore · Refunds.
+
+### AI (núcleo + heimdall) — reflexão (construindo 9º — a META)
+**Quem consome:** plataforma (e líderes pra a lente-pessoas). Pergunta: *"os guardiões estão
+vigiando, e o que aguarda minha aprovação?"*. É a surface que observa as 8 que observam os sistemas.
+**Precioso unificar:** a **frota de Heimdalls** (escopos vigiados, último pulso, tendência de
+cache-hit = a frota ficando mais barata); a **fila de aprovações** (o que aguarda decisão humana — o
+ÚNICO que bloqueia, já que apply é shadow-default, nada age sem você); o **núcleo** (/ask + frescor da
+KB, retrieval-puro com citações); **Odin** (cross-scope, dry-run MVP); a **lente-pessoas** (gated,
+privada, observe/propõe-não-decide). **Viz mais densa da família** (gráficos caprichados: outcome dos
+ciclos, cache-hit trend) — no mock mostro a visão cheia; ao vivo degrada honesto. **Gaps:** cycles
+live-data, instância Odin, instância people-lens, approvals via integration-yggdrasil-self →
+needs-work; **/ask é "today"**. **Páginas:** Frota & Ciclos · Heal & Aprovações · Núcleo (Ask) · Odin
+(Maestro) · Lente Pessoas (gated). Home = "Guardiões: 2 vigiando · 1 aprovação aguarda · núcleo citando".
+
 ## Escopo por surface
 
 > Por surface: pilares (o que gerencia) · prontidão do adapter · guarda da Regra #0 · tiers.
