@@ -21,8 +21,17 @@ export default defineConfig({
         "@mui/material",
         "@emotion/react",
         "@emotion/styled"
-      ]
+      ],
+      output: {
+        // Emit the single bundled stylesheet as dist/styles.css to match the
+        // package's "./styles" export.
+        assetFileNames: (asset) => {
+          const name = asset.name ?? asset.names?.[0] ?? "";
+          return name.endsWith(".css") ? "styles.css" : "[name][extname]";
+        }
+      }
     },
+    cssCodeSplit: false,
     sourcemap: true
   }
 });

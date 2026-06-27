@@ -1,0 +1,66 @@
+/*
+ * Atelier Cálido — warm DaKasa skin.
+ *
+ * Scoped to the `.atelier` root class so a surface opts into the warm theme by
+ * adding `class="atelier"` to its outermost element. Values mirror
+ * src/theme/tokens.ts exactly (the TS object is the source of truth for
+ * JS/inline-SVG charts; this file is the source of truth for CSS).
+ */
+.atelier {
+  /* Colors — ink/body/muted */
+  --ink: #3c2e20;
+  --body: #4a3b2c;
+  --mut: #a08c72;
+
+  /* Colors — surfaces */
+  --cream: #fdfaf4;
+  --sand: #fbf7ef;
+  --sand2: #f6ecda;
+
+  /* Colors — accents (honey / bronze) */
+  --honey: #c97f2c;
+  --honey2: #e8a948;
+  --bronze: #b08038;
+  --bronze2: #9a6f2c;
+
+  /* Hairline */
+  --line: #f0e3ce;
+
+  /* Status — warm-tuned */
+  --ok: #6f9440;
+  --ok2: #8fae57;
+  --warn: #b07d18;
+  --warn2: #e8a948;
+  --crit: #b8531f;
+  --crit2: #c0612a;
+
+  /* Spacing scale */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 40px;
+  --sp-8: 56px;
+
+  /* Radius */
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 16px;
+
+  /* Shadow */
+  --sh-soft: 0 10px 30px -20px rgba(120, 86, 40, .4);
+
+  /* Type — families */
+  --font-heading: 'Fraunces', Georgia, serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+
+  /* Type — sizes */
+  --fs-xs: 11px;
+  --fs-sm: 12.5px;
+  --fs-md: 14px;
+  --fs-lg: 16px;
+  --fs-xl: 21px;
+  --fs-2xl: 27px;
+}
