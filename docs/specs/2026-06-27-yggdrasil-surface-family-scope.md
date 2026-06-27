@@ -195,6 +195,47 @@ live-data, instância Odin, instância people-lens, approvals via integration-yg
 needs-work; **/ask é "today"**. **Páginas:** Frota & Ciclos · Heal & Aprovações · Núcleo (Ask) · Odin
 (Maestro) · Lente Pessoas (gated). Home = "Guardiões: 2 vigiando · 1 aprovação aguarda · núcleo citando".
 
+### Employment-CLT — reflexão (10ª surface)
+**Quem consome:** RH/people-ops + financeiro (folha). Pergunta: *"a força de trabalho está em
+ordem — folha em dia, eSocial conforme, férias/contratos resolvidos?"*. Adapter
+`integration-employment-clt` (CLT-BR completo: funcionários/férias/holerites/contratos/eSocial/folha);
+surface vive **in-repo** em `integration-employment-clt/surface-ui` (padrão família, sobe com o adapter).
+**O que é precioso unificar:**
+1. **eSocial pendente/falho** — compliance, o sinal #1 (atraso = multa). Eventos a submeter/retry.
+2. **Folha** — preview/run da competência + **obrigações** (INSS/FGTS/IRRF due) + aviso-prévio.
+3. **Férias** — pedidos aguardando aprovação + saldos (CLT art. 130).
+4. **Contratos** — pendentes de assinatura; **holerites** por competência.
+5. **Roster** — funcionários (ativo/desligado, tipo de contrato, admissão).
+**Seam:** CLT = **contrato/folha**; GW = identidade. **Sócios = pró-labore (NÃO CLT)** — guard; o
+pró-labore liga no cash-loop (CLT decide competência/valor → EFI executa Pix), hoje **não no adapter**
+→ honest needs-work. **PII/dados sensíveis**: visão INTERNA do RH sobre os PRÓPRIOS funcionários
+(rule #0 ok), mas tratar salário/CPF com cuidado.
+**Páginas (operador):** Funcionários · Férias · Holerites · Contratos · **eSocial** · Folha. Home = "Folha · N
+funcionários · competência <X> em preview · 2 eSocial pendentes · 1 férias aguarda".
+
+**⭐ DUAL-AUDIENCE — a CLT é a ÚNICA surface da família com DOIS públicos** (insight 2026-06-27).
+AWS/K8s/Grafana têm um único operador; a CLT tem o **RH** (vê a folha inteira) E **cada colaborador
+sobre si mesmo** (minhas férias/holerites/contrato/eSocial). Pela rule #0 isso ainda é tooling INTERNO
+(funcionário vendo o próprio dado de RH, não produto pra cliente). Logo a surface é **tier-aware**, ramo
+no root por `scope.tier`:
+- **member** → **"Meu RH"** (self-view): saldo de férias, meus holerites (Baixar PDF via `pdfUrl`), meu
+  contrato, meu eSocial. Rotas `/me/*`. NUNCA vê roster/folha alheia.
+- **lead** → Meu RH **+ "Férias do time"** (aprovar), escopado ao **departamento** do líder
+  (`cost_center` — aproximação v1 de "time"; falta endpoint de team-members do core → upgrade depois).
+- **admin/RH** (perms `clt.*`) → o cockpit operador completo.
+**Ações = redirect, nunca botão morto:** pedir férias / assinar / aprovar / retry / rodar-folha →
+`↗` pro **console do Yggdrasil** (`/ops/integrations?integration=employment-clt&action=…&instance=…`,
+override `VITE_CONSOLE_URL`, degrada pra nota muda); baixar holerite → `pdfUrl` real. O read-first segue:
+a surface não muta, só **encaminha pra ferramenta adequada**.
+**Adapter (caller-scoped):** queries `my-employment/my-vacations/my-paystubs/my-contract/my-esocial` +
+`team-vacations`, resolvendo o vínculo via `GetActiveEmploymentByCollaborator(collaborator_id)`; sócio
+sem vínculo CLT → empty honesto ("sem vínculo CLT"). **🔴 CAVEAT DE SEGURANÇA:** o dispatcher de
+surface-query NÃO recebe a identidade autenticada (o core valida sessão mas não encaminha o caller
+verificado) → `collaborator_id` é do cliente e **SPOOFÁVEL** (insider poderia ler RH alheio). Hoje a
+surface passa SÓ `scope.collaborator.id` (o próprio) e nunca um id de URL/input. **Fix correto (follow-up,
+dono = yggdrasil-core/SDK):** injetar caller verificado server-side no surface-query e escopar por ele
+(ponto único a trocar = `resolveCaller()`). NÃO expor o self-view em prod antes desse fix.
+
 ## Escopo por surface
 
 > Por surface: pilares (o que gerencia) · prontidão do adapter · guarda da Regra #0 · tiers.
