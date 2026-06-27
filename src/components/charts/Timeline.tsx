@@ -27,9 +27,16 @@ export interface TimelineProps {
   rowHeight?: number;
 }
 
-const VB_W = 240;
+// Wide viewBox so the chart's intrinsic aspect ratio is landscape (~5:1 at a
+// typical 3-row roadmap). Paired with `height:auto` below, the rendered SVG box
+// takes the viewBox's own aspect, so it FILLS the container width with no
+// letterbox bands and a uniform (undistorted) scale. A narrow viewBox + fixed
+// pixel height is the classic "content floats centered with empty side bands"
+// bug — see the fluid-fill guard in charts.test.tsx.
+const VB_W = 540;
 const LABEL_W = 64; // viewBox units reserved for the left label gutter
 const AXIS_H = 14; // top weeks axis band
+const RIGHT_PAD = 12; // right gutter so the last axis tick label isn't clipped
 const BAR_INSET = 4; // vertical inset of the bar within its row
 const LABEL_FS = 7; // row-label font size (viewBox units)
 const LABEL_PAD = 6; // gap between the label and the plot's left edge
@@ -56,15 +63,20 @@ function fitLabel(label: string): string {
  * (viewBox + `width:100%`), token-themed.
  */
 export function Timeline({ rows, weeks, todayWeek, rowHeight = 28 }: TimelineProps) {
-  const plotW = VB_W - LABEL_W;
+  const plotW = VB_W - LABEL_W - RIGHT_PAD;
   const weekW = plotW / Math.max(1, weeks);
   const vbH = AXIS_H + rows.length * rowHeight;
 
   const xForWeek = (w: number) => LABEL_W + w * weekW;
 
+  // width:100% + height:auto → the SVG box inherits the viewBox aspect ratio, so
+  // it fills the full container width (no centered letterbox) and derives a
+  // proportional height that grows with the row count. NEVER pin a fixed pixel
+  // height here: that decouples the box aspect from the viewBox and reintroduces
+  // the empty side-band bug.
   const svgStyle: CSSProperties = {
     width: "100%",
-    height: `${vbH * 2}px`,
+    height: "auto",
     display: "block"
   };
 

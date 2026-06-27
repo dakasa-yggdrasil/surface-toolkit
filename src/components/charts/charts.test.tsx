@@ -173,6 +173,37 @@ describe("Timeline", () => {
     expect(labelText.textContent?.includes("…")).toBe(false);
     expect(labelText.querySelector("title")?.textContent).toBe("Build");
   });
+
+  // The class of bug behind "the roadmap floats centered with big empty bands
+  // left and right": a near-square viewBox + a FIXED pixel height letterboxes the
+  // content inside a wide container (preserveAspectRatio="meet" fits by height,
+  // so the plot never reaches the container's edges). The fix is a fluid box:
+  // width:100% + height:auto means the SVG box adopts the viewBox's own aspect,
+  // filling the width with no side bands. This guard fails loudly if either the
+  // fluid sizing OR the landscape viewBox regresses.
+  it("fills its container width: fluid box (width:100% + height:auto) and a landscape viewBox", () => {
+    const { container } = render(
+      <Timeline
+        weeks={12}
+        todayWeek={5}
+        rows={[
+          { label: "A", bars: [{ startWeek: 0, endWeek: 4 }] },
+          { label: "B", bars: [{ startWeek: 0, endWeek: 8 }] },
+          { label: "C", bars: [{ startWeek: 0, endWeek: 12 }] }
+        ]}
+      />
+    );
+    const svg = container.querySelector("svg") as SVGSVGElement;
+    // Fluid: never a fixed pixel height (that would letterbox in a wide box).
+    expect(svg.style.width).toBe("100%");
+    expect(svg.style.height).toBe("auto");
+    // Landscape viewBox so the intrinsic aspect fills typical (wide) containers
+    // instead of fitting-by-height and stranding empty side bands.
+    const [, , vbW, vbH] = (svg.getAttribute("viewBox") ?? "0 0 0 1")
+      .split(" ")
+      .map(Number);
+    expect(vbW / vbH).toBeGreaterThanOrEqual(3);
+  });
 });
 
 describe("Bars", () => {
