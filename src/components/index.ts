@@ -27,6 +27,8 @@ export { KpiTile } from "./KpiTile";
 export type { KpiTileProps, KpiDelta, KpiDeltaDir } from "./KpiTile";
 export { CapabilityGate, useCapability, satisfies } from "./CapabilityGate";
 export type { CapabilityGateProps, CapabilityNeed } from "./CapabilityGate";
+export { SurfaceViewGate, canViewSurface, SURFACE_VIEW_ADMIN_PERMS } from "./SurfaceViewGate";
+export type { SurfaceViewGateProps, CanViewSurfaceOptions } from "./SurfaceViewGate";
 export { Skeleton, SKELETON_ANIMATION_NAME } from "./Skeleton";
 export type { SkeletonProps } from "./Skeleton";
 
